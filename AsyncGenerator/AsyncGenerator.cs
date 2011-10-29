@@ -151,8 +151,7 @@ namespace AsyncGenerator
       }
 
       return originalAttribute.Update(
-        originalAttribute.Name,
-        Syntax.AttributeArgumentList(arguments: newAttributeArgumentList));
+        argumentListOpt: Syntax.AttributeArgumentList(arguments: newAttributeArgumentList));
     }
   }
 }
