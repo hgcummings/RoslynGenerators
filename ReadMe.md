@@ -18,9 +18,9 @@
    * Override ComputeNewRootNode to perform the desired Syntax tree transformation
    * Make use of the extension methods in RoslynExtensions 
    * Edit the vsixmanifest file and add the following to the end:
-      <Content>
-        <Assembly AssemblyName="RoslynGeneratorSupport, PublicKeyToken=27d5caa3a27a807f"/>
-      </Content>
+    ```<Content>
+      <Assembly AssemblyName="RoslynGeneratorSupport, PublicKeyToken=27d5caa3a27a807f"/>
+    </Content>```
 
 ## Description
 This project contains three class libraries:
