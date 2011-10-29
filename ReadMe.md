@@ -1,5 +1,9 @@
 # Roslyn Generators
 
+This is a project contains some supporting classes for creating Roslyn-based single file code generators as Visual Studio extensions, and includes an example generator for asynchronous WCF service interfaces.
+
+For more information on Roslyn, see http://msdn.microsoft.com/en-gb/roslyn
+
 ## Usage
 
  * Install the custom generator
@@ -18,9 +22,12 @@
    * Override ComputeNewRootNode to perform the desired Syntax tree transformation
    * Make use of the extension methods in RoslynExtensions 
    * Edit the vsixmanifest file and add the following to the end:
-    ```<Content>
-      <Assembly AssemblyName="RoslynGeneratorSupport, PublicKeyToken=27d5caa3a27a807f"/>
-    </Content>```
+   
+    ```xml
+<Content>
+  <Assembly AssemblyName="RoslynGeneratorSupport, PublicKeyToken=27d5caa3a27a807f"/>
+</Content>
+```
 
 ## Description
 This project contains three class libraries:
