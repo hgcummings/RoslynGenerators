@@ -52,7 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AsyncGenerator\AsyncGenerator.csproj">
-      <Project>{637D7DD4-D8C6-4185-9ABB-9C02086DB001}</Project>
+      <Project>{01065971-EFC4-4865-9C90-25410F9B4DB1}</Project>
       <Name>AsyncGenerator</Name>
     </ProjectReference>
     <ProjectReference Include="..\RoslynGeneratorSupport\RoslynGeneratorSupport.csproj">

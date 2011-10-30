@@ -11,23 +11,21 @@ using RoslynGeneratorSupport;
 namespace AsyncGenerator
 {
   /// <summary>
-  /// This is the generator class. 
-  /// When setting the 'Custom Tool' property of a C#, VB, or J# project item to "AsyncGenerator", 
-  /// the ComputeNewRootNode function will get called and will return the contents of the generated
-  /// file to the project system
+  /// When setting the 'Custom Tool' property of a C# project item to 'AsyncGenerator', the
+  /// ComputeNewRootNode function will get called and the result we be used to generate a new file
   /// </summary>
   [ComVisible(true)]
-  [Guid("e0674373-c00d-4070-a1c9-140b1cdb1fe4")]
-  [CodeGeneratorRegistration(typeof(AsyncGenerator), "C# Async Generator", vsContextGuids.vsContextGuidVCSProject, GeneratesDesignTimeSource = true)]
+  [Guid("d2c3268e-2b20-472b-a301-7598a98dc061")]
+  [CodeGeneratorRegistration(typeof(AsyncGenerator), "C# AsyncGenerator", vsContextGuids.vsContextGuidVCSProject, GeneratesDesignTimeSource = true)]
   [ProvideObject(typeof(AsyncGenerator))]
   public class AsyncGenerator : RoslynGenerator
   {
-// ReSharper disable InconsistentNaming
+    // ReSharper disable InconsistentNaming
 #pragma warning disable 0414
     //The name of this generator (use for 'Custom Tool' property of project item)
     internal static string name = "AsyncGenerator";
 #pragma warning restore 0414
-// ReSharper restore InconsistentNaming
+    // ReSharper restore InconsistentNaming
 
     protected override SyntaxNode ComputeNewRootNode(SyntaxNode rootNode)
     {
@@ -58,22 +56,11 @@ namespace AsyncGenerator
     /// <returns></returns>
     private static InterfaceDeclarationSyntax ComputeNewServiceContractInterfaceNode(InterfaceDeclarationSyntax originalInterface)
     {
-      var newMembers = new List<MemberDeclarationSyntax>();
+      var newMembers = new List<MemberDeclarationSyntax>(
+        originalInterface.Members.OfType<MethodDeclarationSyntax>()
+          .Where(m => m.GetAttribute(typeof(OperationContractAttribute)) != null)
+          .SelectMany(ComputeNewOperationContractNodes));
 
-      foreach (var memberDeclarationSyntax in originalInterface.Members)
-      {
-        var methodDeclarationSyntax = memberDeclarationSyntax as MethodDeclarationSyntax;
-
-        if (methodDeclarationSyntax != null && methodDeclarationSyntax.GetAttribute(typeof(OperationContractAttribute)) != null)
-        {
-          newMembers.AddRange(ComputeNewOperationContractNodes(methodDeclarationSyntax));
-        }
-        else
-        {
-          newMembers.Add(memberDeclarationSyntax);
-        }
-      }
-      
       return originalInterface.Update(
         identifier: Syntax.Identifier(originalInterface.Identifier.ValueText + "Async"),
         members: Syntax.List<MemberDeclarationSyntax>(newMembers));
@@ -113,10 +100,10 @@ namespace AsyncGenerator
       var endMethod = Syntax.MethodDeclaration(
         returnType: Syntax.PredefinedType(Syntax.Token(SyntaxKind.VoidKeyword)),
         identifier: Syntax.Identifier("End" + originalMethod.Identifier.ValueText),
-        parameterList: Syntax.ParameterList(parameters: Syntax.SeparatedList(Syntax.Parameter(typeOpt: Syntax.IdentifierName(typeof(IAsyncResult).Name), identifier:Syntax.Identifier("result")))),
+        parameterList: Syntax.ParameterList(parameters: Syntax.SeparatedList(Syntax.Parameter(typeOpt: Syntax.IdentifierName(typeof(IAsyncResult).Name), identifier: Syntax.Identifier("result")))),
         semicolonTokenOpt: Syntax.Token(SyntaxKind.SemicolonToken));
 
-      return new[] {beginMethod, endMethod};
+      return new[] { beginMethod, endMethod };
     }
 
     /// <summary>

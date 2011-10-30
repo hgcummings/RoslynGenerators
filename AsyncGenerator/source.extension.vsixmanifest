@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Vsix xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
-  <Identifier Id="AsyncGenerator.08966ef0-c33e-4166-8050-1e9c6be12fc5">
+<Vsix Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
+  <Identifier Id="AsyncGenerator.b9f2019b-1e2c-4853-96be-461b390b577d">
     <Name>AsyncGenerator</Name>
     <Author>Harry Cummings</Author>
     <Version>1.0</Version>
-    <Description xml:space="preserve">This is a sample code generator extension for the Microsoft CodeName Roslyn CTP.</Description>
+    <Description xml:space="preserve">Roslyn-based single file code generator</Description>
     <Locale>1033</Locale>
     <SupportedProducts>
       <VisualStudio Version="10.0">
@@ -15,8 +15,12 @@
     </SupportedProducts>
     <SupportedFrameworkRuntimeEdition MinVersion="4.0" MaxVersion="4.0" />
   </Identifier>
-  <References />
+  <References>
+  <!--Add References here-->  
+  </References>
+
   <Content>
-    <Assembly AssemblyName="RoslynGeneratorSupport, Version=0.0.0.0, Culture=neutral, PublicKeyToken=27d5caa3a27a807f, processorArchitecture=MSIL"/>
+    <Assembly AssemblyName="RoslynGeneratorSupport, PublicKeyToken=27d5caa3a27a807f"/>
   </Content>
+
 </Vsix>

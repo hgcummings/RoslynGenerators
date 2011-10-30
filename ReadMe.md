@@ -15,19 +15,17 @@ For more information on Roslyn, see http://msdn.microsoft.com/en-gb/roslyn
    * A file containing a corresponding asynchronous version of the interface should be generated
    * Make a change to the original file and save it
    * The generated file should update immediately
- * Create a new Roslyn-based generator (TODO:HGC test these steps from scratch)
-   * Create a new project of type 'VSIX' project
-   * Edit the project file and set IncludeAssemblyInVSIXContainer to true
-   * Reference RoslynGeneratorSupport and inherit from Roslyn generator
-   * Override ComputeNewRootNode to perform the desired Syntax tree transformation
-   * Make use of the extension methods in RoslynExtensions 
-   * Edit the vsixmanifest file and add the following to the end:
-   
-    ```xml
-<Content>
-  <Assembly AssemblyName="RoslynGeneratorSupport, PublicKeyToken=27d5caa3a27a807f"/>
-</Content>
-```
+ * Create a new Roslyn-based generator
+   * Drop RoslynGeneratorTemplate.zip into [UserDirectory]\Documents\Visual Studio 2010\Templates\ProjectTemplates\Visual C#
+   * Open the RoslynGenerators solution file in Visual Studio
+   * Add a new project from the template (note that the name of your generator class will default to the project name)
+   * Open source.extension.vsix manifest in the XML Editor (*not* the Designer) and set the description, author etc. as desired
+   * Implement ComputeNewRootNode to perform the desired Syntax tree transformation
+   * When ready to test in Visual Studio, follow the instructions above for installing and using the AsyncGenerator, adapting them to your generator where necessary
+
+ * Hints for writing your custom generator
+   * Familiarise yourself with the extension methods in RoslynGeneratorSupport, in case they can be helpful
+   * Consider writing a test like the one in AsyncGenerators.Tests to help you debug
 
 ## Description
 This project contains three class libraries:
