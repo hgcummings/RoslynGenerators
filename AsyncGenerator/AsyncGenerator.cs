@@ -98,7 +98,7 @@ namespace AsyncGenerator
 
       // Create the 'End' method
       var endMethod = Syntax.MethodDeclaration(
-        returnType: Syntax.PredefinedType(Syntax.Token(SyntaxKind.VoidKeyword)),
+        returnType: originalMethod.ReturnType,
         identifier: Syntax.Identifier("End" + originalMethod.Identifier.ValueText),
         parameterList: Syntax.ParameterList(parameters: Syntax.SeparatedList(Syntax.Parameter(typeOpt: Syntax.IdentifierName(typeof(IAsyncResult).Name), identifier: Syntax.Identifier("result")))),
         semicolonTokenOpt: Syntax.Token(SyntaxKind.SemicolonToken));

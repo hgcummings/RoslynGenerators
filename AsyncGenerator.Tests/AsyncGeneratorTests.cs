@@ -31,16 +31,16 @@ using System.Text;
 
 namespace WcfServiceLibrary1
 {
-  [ServiceContract]
-  [XmlSerializerFormat]
-  public interface IService1
-  {
-    [OperationContract]
-    string GetData(object value);
+    [ServiceContract]
+    [XmlSerializerFormat]
+    public interface IService1
+    {
+        [OperationContract]
+        string GetData(int value);
 
-    [OperationContract]
-    CompositeType GetDataUsingDataContract(CompositeType composite);
-  }
+        [OperationContract]
+        OutputType GetComplexData(InputType value);
+    }
 }";
 
     private const string ExpectedOutputFileContents =
@@ -58,11 +58,11 @@ namespace WcfServiceLibrary1
     public interface IService1Async
     {
         [OperationContract(AsyncPattern = true)]
-        IAsyncResult BeginGetData(object value, AsyncCallback callback, object state);
-        void EndGetData(IAsyncResult result);
+        IAsyncResult BeginGetData(int value, AsyncCallback callback, object state);
+        string EndGetData(IAsyncResult result);
         [OperationContract(AsyncPattern = true)]
-        IAsyncResult BeginGetDataUsingDataContract(CompositeType composite, AsyncCallback callback, object state);
-        void EndGetDataUsingDataContract(IAsyncResult result);
+        IAsyncResult BeginGetComplexData(InputType value, AsyncCallback callback, object state);
+        OutputType EndGetComplexData(IAsyncResult result);
     }
 }";
   }
