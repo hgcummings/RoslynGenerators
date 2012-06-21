@@ -2,6 +2,7 @@
 using System.Text;
 using Microsoft.Samples.VisualStudio.GeneratorSample;
 using Roslyn.Compilers.CSharp;
+using Roslyn.Services;
 
 namespace RoslynGeneratorSupport
 {
@@ -15,7 +16,7 @@ namespace RoslynGeneratorSupport
     public string GenerateCodeAsString(string inputFileContent)
     {
       var tree = SyntaxTree.ParseCompilationUnit(inputFileContent);
-      return ComputeNewRootNode(tree.Root).Format().GetText();
+      return ComputeNewRootNode(tree.GetRoot()).Format().GetFormattedRoot().GetText();
     }
     
     private static byte[] ConvertToByteArray(string content)

@@ -29,7 +29,7 @@ namespace AsyncGenerator
 
     protected override SyntaxNode ComputeNewRootNode(SyntaxNode rootNode)
     {
-      var namespaceDeclarations = rootNode.DescendentNodes().OfType<NamespaceDeclarationSyntax>();
+      var namespaceDeclarations = rootNode.DescendantNodes().OfType<NamespaceDeclarationSyntax>();
       return rootNode.ReplaceNodes(namespaceDeclarations, (n1, n2) => ComputeNewNamespaceDeclarationNode(n1));
     }
 
@@ -42,11 +42,10 @@ namespace AsyncGenerator
     private static NamespaceDeclarationSyntax ComputeNewNamespaceDeclarationNode(NamespaceDeclarationSyntax originalNamespace)
     {
       var serviceContractInterfaces =
-        originalNamespace.DescendentNodes().OfType<InterfaceDeclarationSyntax>().Where(
-          i => i.GetAttribute(typeof(ServiceContractAttribute)) != null);
+        originalNamespace.DescendantNodes().OfType<InterfaceDeclarationSyntax>().Where(
+          i => i.GetAttribute<ServiceContractAttribute>() != null);
 
-      return originalNamespace.Update(
-        members: Syntax.List<MemberDeclarationSyntax>(serviceContractInterfaces.Select(ComputeNewServiceContractInterfaceNode)));
+      return originalNamespace.WithMembers(Syntax.List<MemberDeclarationSyntax>(serviceContractInterfaces.Select(ComputeNewServiceContractInterfaceNode)));
     }
 
     /// <summary>
@@ -58,12 +57,12 @@ namespace AsyncGenerator
     {
       var newMembers = new List<MemberDeclarationSyntax>(
         originalInterface.Members.OfType<MethodDeclarationSyntax>()
-          .Where(m => m.GetAttribute(typeof(OperationContractAttribute)) != null)
+          .Where(m => m.GetAttribute<OperationContractAttribute>() != null)
           .SelectMany(ComputeNewOperationContractNodes));
 
-      return originalInterface.Update(
-        identifier: Syntax.Identifier(originalInterface.Identifier.ValueText + "Async"),
-        members: Syntax.List<MemberDeclarationSyntax>(newMembers));
+      return originalInterface
+        .WithIdentifier(Syntax.Identifier(originalInterface.Identifier.ValueText + "Async"))
+        .WithMembers(Syntax.List<MemberDeclarationSyntax>(newMembers));
     }
 
     /// <summary>
@@ -74,34 +73,30 @@ namespace AsyncGenerator
     private static IEnumerable<MemberDeclarationSyntax> ComputeNewOperationContractNodes(MethodDeclarationSyntax originalMethod)
     {
       // Turn the original method into a 'Begin' method with additional Async parameters..
-      IEnumerable<ParameterSyntax> extraParameters = new List<ParameterSyntax>
-                                                     {
-                                                       Syntax.Parameter(
-                                                         typeOpt: Syntax.IdentifierName(typeof (AsyncCallback).Name),
-                                                         identifier: Syntax.Identifier("callback")),
-                                                       Syntax.Parameter(
-                                                         typeOpt: Syntax.PredefinedType(Syntax.Token(SyntaxKind.ObjectKeyword)),
-                                                         identifier: Syntax.Identifier("state"))
-                                                     };
+      IEnumerable<ParameterSyntax> extraParameters =
+        new List<ParameterSyntax>
+        {
+          Syntax.Parameter(Syntax.Identifier("callback")).WithType(Syntax.IdentifierName(typeof (AsyncCallback).Name)),
+          Syntax.Parameter(Syntax.Identifier("state")).WithType(Syntax.PredefinedType(Syntax.Token(SyntaxKind.ObjectKeyword)))
+        };
 
       var parameters = originalMethod.ParameterList == null ? extraParameters : originalMethod.ParameterList.Parameters.Concat(extraParameters);
       var seperators = Enumerable.Range(0, parameters.Count() - 1).Select(i => Syntax.Token(SyntaxKind.CommaToken));
 
-      var beginMethod = originalMethod.Update(
-        returnType: Syntax.IdentifierName(typeof(IAsyncResult).Name),
-        identifier: Syntax.Identifier("Begin" + originalMethod.Identifier.ValueText),
-        parameterList: Syntax.ParameterList(parameters: Syntax.SeparatedList(parameters, seperators)));
+      var beginMethod = originalMethod
+        .WithReturnType(Syntax.IdentifierName(typeof(IAsyncResult).Name))
+        .WithIdentifier(Syntax.Identifier("Begin" + originalMethod.Identifier.ValueText))
+        .WithParameterList(Syntax.ParameterList(Syntax.SeparatedList(parameters, seperators)));
 
       // Alter the OperationContractAttribute to specify AsyncPattern = true
-      var operationContractAttribute = beginMethod.GetAttribute(typeof(OperationContractAttribute));
-      beginMethod = beginMethod.ReplaceNode(operationContractAttribute, ComputeNewOperationContractAttributeNode(operationContractAttribute));
+      var operationContractAttribute = beginMethod.GetAttribute<OperationContractAttribute>();
+      beginMethod = beginMethod.ReplaceNodes(new[] { operationContractAttribute }, (x, y) => ComputeNewOperationContractAttributeNode(x));
 
       // Create the 'End' method
-      var endMethod = Syntax.MethodDeclaration(
-        returnType: originalMethod.ReturnType,
-        identifier: Syntax.Identifier("End" + originalMethod.Identifier.ValueText),
-        parameterList: Syntax.ParameterList(parameters: Syntax.SeparatedList(Syntax.Parameter(typeOpt: Syntax.IdentifierName(typeof(IAsyncResult).Name), identifier: Syntax.Identifier("result")))),
-        semicolonTokenOpt: Syntax.Token(SyntaxKind.SemicolonToken));
+      var endMethod = Syntax.MethodDeclaration(originalMethod.ReturnType, Syntax.Identifier("End" + originalMethod.Identifier.ValueText))
+        .WithParameterList(
+          Syntax.ParameterList(Syntax.SeparatedList(Syntax.Parameter(Syntax.Identifier("result")).WithType(Syntax.IdentifierName(typeof(IAsyncResult).Name)))))
+        .WithSemicolonToken(Syntax.Token(SyntaxKind.SemicolonToken));
 
       return new[] { beginMethod, endMethod };
     }
@@ -115,16 +110,13 @@ namespace AsyncGenerator
     {
       var newAttributeArguments = new List<AttributeArgumentSyntax>
                               {
-                                Syntax.AttributeArgument(
-                                  Syntax.NameEquals(
-                                    Syntax.Identifier("AsyncPattern"),
-                                    Syntax.Token(SyntaxKind.EqualsToken)),
-                                  expression: Syntax.LiteralExpression(SyntaxKind.TrueLiteralExpression))
+                                Syntax.AttributeArgument(Syntax.LiteralExpression(SyntaxKind.TrueLiteralExpression))
+                                  .WithNameEquals(Syntax.NameEquals(Syntax.IdentifierName("AsyncPattern"), Syntax.Token(SyntaxKind.EqualsToken)))
                               };
 
       SeparatedSyntaxList<AttributeArgumentSyntax> newAttributeArgumentList;
 
-      if (originalAttribute.ArgumentListOpt == null)
+      if (originalAttribute.ArgumentList == null)
       {
         newAttributeArgumentList = Syntax.SeparatedList(
           newAttributeArguments,
@@ -133,12 +125,11 @@ namespace AsyncGenerator
       else
       {
         newAttributeArgumentList = Syntax.SeparatedList(
-          originalAttribute.ArgumentListOpt.Arguments.Concat(newAttributeArguments),
-          Enumerable.Range(0, originalAttribute.ArgumentListOpt.Arguments.SeparatorCount + 1).Select(i => Syntax.Token(SyntaxKind.CommaToken)));
+          originalAttribute.ArgumentList.Arguments.Concat(newAttributeArguments),
+          Enumerable.Range(0, originalAttribute.ArgumentList.Arguments.SeparatorCount + 1).Select(i => Syntax.Token(SyntaxKind.CommaToken)));
       }
 
-      return originalAttribute.Update(
-        argumentListOpt: Syntax.AttributeArgumentList(arguments: newAttributeArgumentList));
+      return originalAttribute.WithArgumentList(Syntax.AttributeArgumentList(newAttributeArgumentList));
     }
   }
 }

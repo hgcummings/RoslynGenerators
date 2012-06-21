@@ -4,3 +4,4 @@
 TestResults/*
 _ReSharper*
 *.user
+*.ncrunchsolution
